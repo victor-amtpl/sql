@@ -21,19 +21,24 @@
       background: #eaeaea;
       white-space: pre-wrap;
       border-left: 5px solid #007acc;
+      min-height: 150px;
     }
     button {
-      margin: 10px 0;
+      margin: 10px 5px 10px 0;
       padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<h2>SQL Formatter: Capitalize + Nested BEGIN Indent</h2>
-<textarea id="sqlInput" placeholder="Paste your SQL here..."></textarea>
-<br>
+<h2>SQL Formatter</h2>
+
+<textarea id="sqlInput" placeholder="Paste your SQL here..."></textarea><br>
 <button onclick="formatSQL()">Format SQL</button>
+<button onclick="copyFormattedSQL()">Copy Formatted SQL</button>
+
 <pre id="formattedSQL"></pre>
 
 <script>
@@ -51,14 +56,14 @@ function formatSQL() {
   const keywords = ['select', 'from', 'where', 'insert', 'into', 'values', 'update', 'set', 'delete',
                     'create', 'alter', 'drop', 'declare', 'begin', 'end', 'as', 'if', 'else',
                     'while', 'return', 'exec', 'procedure', 'function'];
-  
+
   let indentLevel = 0;
   let formatted = '';
 
   lines.forEach(rawLine => {
     let line = rawLine.trim();
 
-    // Capitalize only the first letter of SQL keywords
+    // Capitalize SQL keywords (first letter only)
     keywords.forEach(kw => {
       const regex = new RegExp('\\b' + kw + '\\b', 'gi');
       line = line.replace(regex, match => capitalizeFirst(match));
@@ -75,6 +80,21 @@ function formatSQL() {
   });
 
   document.getElementById("formattedSQL").textContent = formatted.trim();
+}
+
+function copyFormattedSQL() {
+  const formattedText = document.getElementById("formattedSQL").textContent;
+
+  if (!formattedText) {
+    alert("Nothing to copy!");
+    return;
+  }
+
+  navigator.clipboard.writeText(formattedText).then(() => {
+    alert("Formatted SQL copied to clipboard!");
+  }).catch(err => {
+    alert("Failed to copy: " + err);
+  });
 }
 </script>
 
