@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple SQL Formatter</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    textarea, pre {
+      width: 100%;
+      font-size: 14px;
+      padding: 10px;
+    }
+    textarea {
+      height: 200px;
+    }
+    pre {
+      background: #eaeaea;
+      white-space: pre-wrap;
+      border-left: 5px solid #007acc;
+    }
+    button {
+      margin: 10px 0;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>SQL Formatter: Capitalize + Nested BEGIN Indent</h2>
+<textarea id="sqlInput" placeholder="Paste your SQL here..."></textarea>
+<br>
+<button onclick="formatSQL()">Format SQL</button>
+<pre id="formattedSQL"></pre>
+
+<script>
+function capitalizeFirst(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+function getIndent(level) {
+  return '\t'.repeat(level);
+}
+
+function formatSQL() {
+  const input = document.getElementById("sqlInput").value;
+  const lines = input.split(/\r?\n/);
+  const keywords = ['select', 'from', 'where', 'insert', 'into', 'values', 'update', 'set', 'delete',
+                    'create', 'alter', 'drop', 'declare', 'begin', 'end', 'as', 'if', 'else',
+                    'while', 'return', 'exec', 'procedure', 'function'];
+  
+  let indentLevel = 0;
+  let formatted = '';
+
+  lines.forEach(rawLine => {
+    let line = rawLine.trim();
+
+    // Capitalize only the first letter of SQL keywords
+    keywords.forEach(kw => {
+      const regex = new RegExp('\\b' + kw + '\\b', 'gi');
+      line = line.replace(regex, match => capitalizeFirst(match));
+    });
+
+    // Decrease indent if line is END
+    if (line.toLowerCase() === 'end') indentLevel = Math.max(0, indentLevel - 1);
+
+    // Add indented line
+    formatted += getIndent(indentLevel) + line + '\n';
+
+    // Increase indent if line is BEGIN
+    if (line.toLowerCase() === 'begin') indentLevel++;
+  });
+
+  document.getElementById("formattedSQL").textContent = formatted.trim();
+}
+</script>
+
+</body>
+</html>
