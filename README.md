@@ -1,5 +1,3 @@
-# My SQL Query Documentation
-
 ## TABLE TYPE DEPENDENCIES
 ```sql
 SELECT OBJECT_NAME(referencing_id) AS dependent_object
