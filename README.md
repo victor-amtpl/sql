@@ -7,6 +7,7 @@ SELECT Id, Name, Email
 FROM Users
 WHERE IsActive = 1
 ORDER BY Name;
+```
 
 
 ### 📌 Explanation:
