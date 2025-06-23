@@ -1,5 +1,12 @@
 # My SQL Query Documentation
 
+## TABLE TYPE DEPENDENCIES
+```sql
+SELECT OBJECT_NAME(referencing_id) AS dependent_object
+FROM sys.sql_expression_dependencies
+WHERE referenced_entity_name = 'YOUR_USER_DEFINED_TABLE_TYE';
+```
+
 ## CHECK TABLE USED IN WHICH SP
 ```sql
 SELECT DISTINCT p.name AS ProcedureName,o.name AS TableName
@@ -102,4 +109,53 @@ ROW_NUMBER() OVER (PARTITION BY MPC.MemberNo ORDER BY PMA.FromDate desc) Sno
 ```sql
 SELECT session_id,blocking_session_id,wait_type,wait_time,wait_resource,percent_complete,* 
 FROM sys.dm_exec_requests WHERE status = 'running';
+```
+
+## SQL DETAILS
+```sql
+declare
+    @spid int
+,   @stmt_start int
+,   @stmt_end int
+,   @sql_handle binary(20)
+
+set @spid = 000 -- Fill this in
+
+select  top 1
+    @sql_handle = sql_handle
+,   @stmt_start = case stmt_start when 0 then 0 else stmt_start / 2 end
+,   @stmt_end = case stmt_end when -1 then -1 else stmt_end / 2 end
+from    sys.sysprocesses
+where   spid = @spid
+order by ecid
+
+SELECT
+    SUBSTRING(  text,
+            COALESCE(NULLIF(@stmt_start, 0), 1),
+            CASE @stmt_end
+                WHEN -1
+                    THEN DATALENGTH(text)
+                ELSE
+                    (@stmt_end - @stmt_start)
+                END
+        )
+FROM ::fn_get_sql(@sql_handle)
+```
+
+## MODIFIED SPs & TABLES
+```sql
+SELECT o.name AS ObjectName,SCHEMA_NAME(o.schema_id) AS SchemaName,o.type_desc,o.modify_date
+FROM sys.objects o
+WHERE o.is_ms_shipped = 0 AND CAST(o.modify_date AS DATE) = CAST(GETDATE() AS DATE)
+ORDER BY o.modify_date DESC;
+```
+
+## SPID
+```sql
+select P.spid,right(convert(varchar, dateadd(ms, datediff(ms, P.last_batch, getdate()), '1900-01-01'), 121), 12) as 'batch_duration',
+P.program_name,P.hostname,P.loginame,P.*
+from master.dbo.sysprocesses P
+where P.spid > 50 and P.status not in ('background', 'sleeping')
+and P.cmd not in ('AWAITING COMMAND','MIRROR HANDLER','LAZY WRITER','CHECKPOINT SLEEP','RA MANAGER')
+order by batch_duration desc
 ```
