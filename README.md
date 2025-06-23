@@ -1,22 +1,16 @@
 # My SQL Query Documentation
 
-## 1. Sample Query to Fetch Users
+## CHECK TABLE USED IN WHICH SP
 
 ```sql
-SELECT Id, Name, Email
-FROM Users
-WHERE IsActive = 1
-ORDER BY Name;
+
+SELECT DISTINCT p.name AS ProcedureName,o.name AS TableName
+FROM sys.procedures p
+INNER JOIN sys.sql_modules m ON p.object_id = m.object_id
+INNER JOIN sys.objects o ON o.type = 'U'  -- 'U' indicates user tables
+WHERE m.definition LIKE '%TABLE_NAME%'
+AND o.name = 'TABLE_NAME'
+ORDER BY p.name;
+
 ```
 
-
-### 📌 Explanation:
-
-- `#` is used for headers:
-  - `#` = H1
-  - `##` = H2
-  - `###` = H3, and so on.
-- Triple backticks <code>\`\`\`</code> are used for code blocks.
-- You can specify the language right after the opening backticks for syntax highlighting, like `sql`.
-
-Let me know if you want this styled differently or exported to a file.
