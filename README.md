@@ -110,7 +110,23 @@ ROW_NUMBER() OVER (PARTITION BY MPC.MemberNo ORDER BY PMA.FromDate desc) Sno
 SELECT session_id,blocking_session_id,wait_type,wait_time,wait_resource,percent_complete,* 
 FROM sys.dm_exec_requests WHERE status = 'running';
 ```
+## MODIFIED SPs & TABLES
+```sql
+SELECT o.name AS ObjectName,SCHEMA_NAME(o.schema_id) AS SchemaName,o.type_desc,o.modify_date
+FROM sys.objects o
+WHERE o.is_ms_shipped = 0 AND CAST(o.modify_date AS DATE) = CAST(GETDATE() AS DATE)
+ORDER BY o.modify_date DESC;
+```
 
+## SPID
+```sql
+select P.spid,right(convert(varchar, dateadd(ms, datediff(ms, P.last_batch, getdate()), '1900-01-01'), 121), 12) as 'batch_duration',
+P.program_name,P.hostname,P.loginame,P.*
+from master.dbo.sysprocesses P
+where P.spid > 50 and P.status not in ('background', 'sleeping')
+and P.cmd not in ('AWAITING COMMAND','MIRROR HANDLER','LAZY WRITER','CHECKPOINT SLEEP','RA MANAGER')
+order by batch_duration desc
+```
 ## SQL DETAILS
 ```sql
 declare
@@ -142,20 +158,5 @@ SELECT
 FROM ::fn_get_sql(@sql_handle)
 ```
 
-## MODIFIED SPs & TABLES
-```sql
-SELECT o.name AS ObjectName,SCHEMA_NAME(o.schema_id) AS SchemaName,o.type_desc,o.modify_date
-FROM sys.objects o
-WHERE o.is_ms_shipped = 0 AND CAST(o.modify_date AS DATE) = CAST(GETDATE() AS DATE)
-ORDER BY o.modify_date DESC;
-```
 
-## SPID
-```sql
-select P.spid,right(convert(varchar, dateadd(ms, datediff(ms, P.last_batch, getdate()), '1900-01-01'), 121), 12) as 'batch_duration',
-P.program_name,P.hostname,P.loginame,P.*
-from master.dbo.sysprocesses P
-where P.spid > 50 and P.status not in ('background', 'sleeping')
-and P.cmd not in ('AWAITING COMMAND','MIRROR HANDLER','LAZY WRITER','CHECKPOINT SLEEP','RA MANAGER')
-order by batch_duration desc
-```
+
