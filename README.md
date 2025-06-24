@@ -5,7 +5,7 @@ FROM sys.sql_expression_dependencies
 WHERE referenced_entity_name = 'YOUR_USER_DEFINED_TABLE_TYE';
 ```
 
-## CHECK TABLE USED IN WHICH SP
+## TABLE DEPENDENCIES IN SP
 ```sql
 SELECT DISTINCT p.name AS ProcedureName,o.name AS TableName
 FROM sys.procedures p
@@ -16,7 +16,7 @@ AND o.name = 'TABLE_NAME'
 ORDER BY p.name;
 ```
 
-## CHECK TABLE COLUMN USED IN WHICH SP
+## TABLE COLUMN DEPENDENCIES IN SP
 ```sql
 SELECT DISTINCT ROUTINE_NAME,ROUTINE_TYPE
 FROM INFORMATION_SCHEMA.ROUTINES AS R
@@ -102,7 +102,7 @@ WHERE r.resource_type = 'OBJECT' AND er.blocking_session_id IS NOT NULL;
 ROW_NUMBER() OVER (PARTITION BY MPC.MemberNo ORDER BY PMA.FromDate desc) Sno
 ```
 
-## TRANSACTION
+## TRANSACTIONS
 ```sql
 SELECT session_id,blocking_session_id,wait_type,wait_time,wait_resource,percent_complete,* 
 FROM sys.dm_exec_requests WHERE status = 'running';
