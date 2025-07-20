@@ -1,3 +1,22 @@
+## SQL CURRENT JOBS SPS
+```sql
+SELECT 
+    j.name AS JobName,
+    s.step_id AS StepID,
+    s.step_name AS StepName,
+    s.subsystem AS Subsystem,
+    s.command AS CommandText
+FROM 
+    msdb.dbo.sysjobs j
+INNER JOIN 
+    msdb.dbo.sysjobsteps s ON j.job_id = s.job_id
+WHERE 
+    s.command LIKE '%EXEC%'
+    OR s.command LIKE '%usp_%'
+ORDER BY 
+    j.name, s.step_id;
+```
+
 ## TABLE TYPE DEFINITION
 ```sql
 DECLARE @TypeName SYSNAME = 'YOUR_USERDEFINED_TABLE_TYPE'; -- Change this
