@@ -17,6 +17,61 @@ ORDER BY
     j.name, s.step_id;
 ```
 
+## TABLE DEFINITION
+```sql
+DECLARE @TableName SYSNAME = 'YOUR_TABLE_NAME'; -- Change this
+DECLARE @SchemaName SYSNAME = (SELECT SCHEMA_NAME(schema_id)
+                               FROM sys.tables 
+                               WHERE name = @TableName);
+
+DECLARE @SQL NVARCHAR(MAX) = '';
+SET @SQL = 'CREATE TABLE [' + @SchemaName + '].[' + @TableName + '] (' + CHAR(13);
+
+SELECT @SQL = @SQL +
+    '    [' + c.name + '] ' +
+    t.name +
+    CASE 
+        WHEN t.name IN ('varchar', 'char', 'varbinary', 'binary', 'nvarchar', 'nchar') 
+            THEN '(' + CASE WHEN c.max_length = -1 THEN 'MAX' 
+                            ELSE CAST(
+                                CASE 
+                                    WHEN t.name IN ('nchar', 'nvarchar') 
+                                        THEN c.max_length / 2 
+                                    ELSE c.max_length 
+                                END AS VARCHAR) END + ')'
+        WHEN t.name IN ('decimal', 'numeric') 
+            THEN '(' + CAST(c.precision AS VARCHAR) + ',' + CAST(c.scale AS VARCHAR) + ')'
+        ELSE ''
+    END +
+    CASE WHEN c.is_identity = 1 
+         THEN ' IDENTITY(' + CAST(ic.seed_value AS VARCHAR) + ',' + CAST(ic.increment_value AS VARCHAR) + ')' 
+         ELSE '' END +
+    CASE WHEN c.is_nullable = 1 THEN ' NULL' ELSE ' NOT NULL' END + ',' + CHAR(13)
+FROM sys.tables tbl
+JOIN sys.columns c ON tbl.object_id = c.object_id
+JOIN sys.types t ON c.user_type_id = t.user_type_id
+LEFT JOIN sys.identity_columns ic ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+WHERE tbl.name = @TableName
+ORDER BY c.column_id;
+
+-- Remove trailing comma and newline
+SET @SQL = LEFT(@SQL, LEN(@SQL) - 2) + CHAR(13) + ');';
+
+-- Add PK constraints
+DECLARE @PK NVARCHAR(MAX) = '';
+SELECT @PK = @PK + 'ALTER TABLE [' + @SchemaName + '].[' + @TableName + '] ADD CONSTRAINT [' + kc.name + '] PRIMARY KEY (' +
+             STRING_AGG('[' + c.name + ']', ', ') + ');' + CHAR(13)
+FROM sys.key_constraints kc
+JOIN sys.index_columns ic ON kc.parent_object_id = ic.object_id AND kc.unique_index_id = ic.index_id
+JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+WHERE kc.parent_object_id = OBJECT_ID(@SchemaName + '.' + @TableName) AND kc.type = 'PK'
+GROUP BY kc.name;
+
+-- Output CREATE TABLE + PK
+PRINT @SQL;
+PRINT @PK;
+```
+
 ## TABLE TYPE DEFINITION
 ```sql
 DECLARE @TypeName SYSNAME = 'YOUR_USERDEFINED_TABLE_TYPE'; -- Change this
