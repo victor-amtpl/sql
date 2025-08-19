@@ -1,7 +1,6 @@
 ## TABLE LOG (JSON SNAPSHOT)
 ```sql
-Drop table #tblLog
-Create table #tblLog(JSONData nvarchar(max))
+Create table #tblLog(LogId bigint identity(1,1),LogUserId int,LogTransDate Datetime default getdate(),JSONData nvarchar(max))
 Insert into #tblLog(JSONData)
 SELECT(SELECT top 1 * FROM tblQuotationMaster with(nolock) where QuotationId=1000001 FOR JSON AUTO ) SnapShotData
 SELECT LOG.JSONData, J.*
