@@ -1,3 +1,20 @@
+## TABLE LOG (JSON SNAPSHOT)
+```sql
+Create table #tblLog(SnapShot nvarchar(max))
+
+Insert into #tblLog(SnapShot)
+SELECT(SELECT top 1 * FROM tblQuotationMaster with(nolock) where QuotationId=1000001 FOR JSON AUTO ) SnapShotData
+
+SELECT LOG.SnapShot, J.*
+FROM #tblLog LOG
+CROSS APPLY OPENJSON(LOG.SnapShot)
+WITH (
+    QuotationId varchar(200),
+    QuotationNo varchar(200)
+) J;
+```
+
+
 ## SQL CURRENT JOBS SPS
 ```sql
 SELECT 
