@@ -1,3 +1,16 @@
+
+## FUNCTIONS DEPENDS IN SP
+```sql
+SELECT
+    OBJECT_SCHEMA_NAME(referencing_id) AS 'Schema Name',
+    OBJECT_NAME(referencing_id) AS 'Stored Procedure Name'
+FROM
+    sys.sql_expression_dependencies
+WHERE
+    referenced_entity_name = 'YOUR_FUNCTION_NAME'
+    AND referencing_class = 1; -- 1 refers to an object (e.g., a stored procedure)
+```
+
 ## TABLE LOG (JSON SNAPSHOT)
 ```sql
 Create table #tblLog(LogId bigint identity(1,1),LogUserId int,LogTransDate Datetime default getdate(),JSONData nvarchar(max))
